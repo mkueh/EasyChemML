@@ -1,0 +1,14 @@
+{
+    "fp_settings":
+        {
+            "length": 2048,
+            "maxPath": 4
+        },
+    "fp_type": "ECFP",
+    "train_data_size": 100000,
+    "src_len": 300,
+    "epochs": 400,
+    "batch_size": 100,
+    "print_every": 25,
+    "loss_fname": "ECFP_100k.csv"
+}

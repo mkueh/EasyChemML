@@ -1,0 +1,33 @@
+[package]
+name = "pyRustBatchsystem"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "pyRustBatchsystem"
+crate-type = ["cdylib"]
+path = "rustBatchsystem/src/lib.rs"
+
+[dependencies]
+pyo3 = { version = "0.17.3", features = ["extension-module","serde","hashbrown","eyre","anyhow" ] }
+serde = "1.0.150"
+serde_json  = "1.0.89"
+postcard = {version = "1.0.2", features=["alloc"]}
+numpy = "0.17.2"
+rand = "0.8.5"
+rayon = "1.5.3"
+glob = "0.3.0"
+ndarray = { version = "0.15.4", features = ["rayon", "std", "serde"] }
+digest = "0.10.3"
+sha2 = "0.10.2"
+hex = "0.4.3"
+kdam = "0.3.0"
+lz4 = "1.24.0"
+flexbuffers = "2.0.0"
+
+[dependencies.ndarray-npy]
+version = "0.8.1"
+default-features = false
+features = ["num-complex-0_4", "npz"]
+
