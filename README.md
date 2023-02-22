@@ -8,7 +8,7 @@ EasyChem-ML is developed and maintained as a PhD project by Marius Kühnemund. T
 
 
 
-**In addition, not all modules are publicly available, as these were/are used for projects that have not yet been published yet**
+**In addition, not all modules are public available, as these were/are used for projects that have not yet been published yet**
 
 \
 \
