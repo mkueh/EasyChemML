@@ -158,8 +158,7 @@ if os_system_name == 'Windows':
         'pytest',
         'xarray',
         'xlrd==1.2.0',
-        'openpyxl',
-        'numba'
+        'openpyxl'
     ]
 else:
     install_requires = [
@@ -197,8 +196,7 @@ else:
         'pytest',
         'xarray',
         'xlrd==1.2.0',
-        'openpyxl',
-        'numba'
+        'openpyxl'
     ]
 
 #init_pyx_files = [f for f in glob.glob(path+'/**/__init__.py', recursive=True)]
