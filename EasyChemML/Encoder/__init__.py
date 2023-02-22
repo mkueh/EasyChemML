@@ -1,4 +1,3 @@
-from EasyChemML.Encoder.EvoFP import EvoFP
 from EasyChemML.Encoder.FingerprintEncoder import FingerprintEncoder
 from EasyChemML.Encoder.MFF import MFF
 from EasyChemML.Encoder.OnehotEncoder import OnehotEncoder
