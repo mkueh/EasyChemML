@@ -36,9 +36,9 @@ class Split(object):
 
         while True:
             if start > len(self.train):
-                yield []
+                return []
             elif end >= len(self.train):
-                yield self.train[start:]
+                return self.train[start:]
             else:
                 yield self.train[start:end]
                 start += batchSize
@@ -54,8 +54,10 @@ class Split(object):
         while True:
             if start > len(self.test):
                 yield []
+                break
             elif end >= len(self.test):
-                yield self.test[start:]
+                yield self.test[start:]  
+                break
             else:
                 yield self.test[start:end]
                 start += batchSize
