@@ -5,6 +5,7 @@ import datetime
 import uuid
 import paramiko
 import time
+import getpass
 
 class bcolors:
     HEADER = '\033[95m'
@@ -28,7 +29,7 @@ def progress(size, sent):
     printProgressCount += 1
 
 def log(message):
-    print('[RemoteRunner]: ' + message)
+    print('[RemoteRunner] ' + message)
 
 def logRemote(message):
     print('Remote > ' + message, end="")
@@ -64,8 +65,6 @@ class SlurmParams():
 class SlurmDirectives():
     def __init__(
             self,
-            job_name: str,
-
             nodes: str = "",
             ntasks_per_node: str = "",
             cpus_per_task: str = "",
@@ -83,7 +82,6 @@ class SlurmDirectives():
         self.cpus_per_task: str =  cpus_per_task
         self.partition: SlurmParams.Partition | str = partition
         self.time: str = time
-        self.job_name: str = job_name
         self.mail_type: str = mail_type
         self.mail_user: str = mail_user
         self.output: str = output
@@ -106,6 +104,15 @@ class RemoteRunner():
             ssh_config: SSHConfig,
             base_dir: str,
     ):
+
+        print(f'''{bcolors.OKBLUE}
+    ______________  _____       ____                       __       ____                             
+   / ____/ ____/  |/  / /      / __ \___  ____ ___  ____  / /____  / __ \__  ______  ____  ___  _____
+  / __/ / /   / /|_/ / /      / /_/ / _ \/ __ `__ \/ __ \/ __/ _ \/ /_/ / / / / __ \/ __ \/ _ \/ ___/
+ / /___/ /___/ /  / / /___   / _, _/  __/ / / / / / /_/ / /_/  __/ _, _/ /_/ / / / / / / /  __/ /    
+/_____/\____/_/  /_/_____/  /_/ |_|\___/_/ /_/ /_/\____/\__/\___/_/ |_|\__,_/_/ /_/_/ /_/\___/_/                 
+        {bcolors.ENDC}''')
+
         self.ssh_config: SSHConfig = ssh_config
         self.base_dir: str = base_dir
 
@@ -126,7 +133,7 @@ class RemoteRunner():
     def _connect(self):
         try:
             if not self.ssh_config.password:
-                self.ssh_config.password = input('[RemoteRunner] Please enter your SSH user password: ')
+                self.ssh_config.password = getpass.getpass('[RemoteRunner] Please enter your SSH user password: ')
 
             log(f'Attempting to connect to "{self.ssh_config.hostname}:{self.ssh_config.port}"...')
             self.ssh.connect(
@@ -145,12 +152,13 @@ class RemoteRunner():
         try:
             self.sftp.chdir(path)
         except IOError as e:
-            log(f'Creating new base directory under "{path}"')
+            log(f'Creating new directory under "{path}"')
             self.sftp.mkdir(path)
             self.sftp.chdir(path)
 
     def run(
             self,
+            job_name: str,
             slurm_directives: SlurmDirectives,
             container_path: str,
             script_path: str,
@@ -168,7 +176,12 @@ class RemoteRunner():
 
             slurm_script_path = self._createSlurmFile(
                 tmpdirname,
-                self._prepareSlurmScript(slurm_directives, container_path, slurm_modules)
+                self._prepareSlurmScript(
+                    slurm_directives=slurm_directives,
+                    container_path=container_path,
+                    slurm_modules=slurm_modules,
+                    job_name=job_name
+                )
             )
 
             self._transferFiles(
@@ -183,19 +196,19 @@ class RemoteRunner():
         log(f'Executing command: {command}')
         stdin, stdout, stderr = self.ssh.exec_command(command)
 
+        # Check if errors occured
         error = stderr.read().decode()
-
         if error:
             raise Exception(error)
 
+        # Parse Job Number
         job_nr = ""
-
         for line in iter(stdout.readline, ""):
                 job_nr = line.split(";")[0].strip()
 
-        log(f'Job submitted, Job Nr is: {job_nr}')
+        log(f'{bcolors.BOLD}{bcolors.OKGREEN}Job submitted, Job Nr is: {job_nr}{bcolors.ENDC}')
 
-        log(f'To download directory, use:  {bcolors.OKGREEN}scp -P {self.ssh_config.port} -r {self.ssh_config.username}@{self.ssh_config.hostname}:{os.path.join(self.base_dir, execution_id)} <local directory>{bcolors.ENDC}')
+        log(f'To download directory, use:  {bcolors.BOLD+bcolors.OKCYAN}scp -P {self.ssh_config.port} -r {self.ssh_config.username}@{self.ssh_config.hostname}:{os.path.join(self.base_dir, execution_id)} <local directory>{bcolors.ENDC}')
 
         if not attach:
             return f'Execution {execution_id} with job ID {job_nr} successful'
@@ -241,11 +254,14 @@ class RemoteRunner():
             self,
             slurm_directives: SlurmDirectives,
             container_path: str,
+            job_name: str,
             slurm_modules: list[str] = None,
     ) -> list[str]:
         script_lines = ['#!/bin/bash -l']
 
         directives_list = slurm_directives.returnDefinedDirectives()
+
+        directives_list['job_name'] = job_name
 
         for key, value in directives_list.items():
             script_lines.append(f'#SBATCH --{key.replace("_", "-")}={value}')
