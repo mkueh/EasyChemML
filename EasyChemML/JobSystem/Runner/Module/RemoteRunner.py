@@ -47,20 +47,35 @@ class SlurmParams():
         NORMAL = 'normal'
         LONG = 'long'
         EXPRESS = 'express'
-        BIGSMP = 'bigsmp'
-        LARGESMP = 'largesmp'
+        BIG_SMP = 'bigsmp'
+        LARGE_SMP = 'largesmp'
         REQUEUE = 'requeue*'
-        GPUV100 = 'gpuv100'
-        VISGPU = 'vis-gpu'
+        GPU_V100 = 'gpuv100'
+        VIS_GPU = 'vis-gpu'
         VIS = 'vis'
         BROADWELL = 'broadwell'
         ZEN2 = 'zen2-128C-496G'
-        GPU2080 = 'gpu2080'
-        GPUEXPRESS = 'gpuexpress'
-        GPUTITANRTX = 'gputitanrtx'
-        GPU3090 = 'gpu3090'
-        GPUA100 = 'gpua100'
-        GPUHGX = 'gpuhgx'
+        GPU_2080 = 'gpu2080'
+        GPU_EXPRESS = 'gpuexpress'
+        GPU_TITANRTX = 'gputitanrtx'
+        GPU_3090 = 'gpu3090'
+        GPU_A100 = 'gpua100'
+        GPU_HGX = 'gpuhgx'
+        CPU = 'CPU'
+    class MailType(Enum):
+        NONE='NONE'
+        BEGIN='BEGIN'
+        END='END'
+        FAIL='FAIL'
+        REQUEUE='REQUEUE'
+        ALL='ALL'
+        INVALID_DEPEND='INVALID_DEPEND'
+        STAGE_OUT='STAGE_OUT'
+        TIME_LIMIT='TIME_LIMIT'
+        TIME_LIMIT_90='TIME_LIMIT_90'
+        TIME_LIMIT_80='TIME_LIMIT_80'
+        TIME_LIMIT_50='TIME_LIMIT_50'
+        ARRAY_TASKS='ARRAY_TASKS'
 
 class SlurmDirectives():
     def __init__(
@@ -70,7 +85,7 @@ class SlurmDirectives():
             cpus_per_task: str = "",
             partition: SlurmParams.Partition | str = "",
             time: str = "",
-            mail_type: str = "",
+            mail_type: SlurmParams.MailType | str = "",
             mail_user: str = "",
             output: str = "",
             error: str = "",
@@ -82,7 +97,7 @@ class SlurmDirectives():
         self.cpus_per_task: str =  cpus_per_task
         self.partition: SlurmParams.Partition | str = partition
         self.time: str = time
-        self.mail_type: str = mail_type
+        self.mail_type: SlurmParams.MailType | str = mail_type
         self.mail_user: str = mail_user
         self.output: str = output
         self.error: str = error
@@ -128,7 +143,7 @@ class RemoteRunner():
 
         # Establish SFTP Session and create or enter base dir
         self.sftp = self.ssh.open_sftp()
-        self._enterOrCreateDir(self.base_dir)
+        self._enterOrCreateDir(self.base_dir, self.sftp)
 
     def _connect(self):
         try:
@@ -147,14 +162,14 @@ class RemoteRunner():
             log(f'Could not connect with "{self.ssh_config.hostname}:{self.ssh_config.port}". Error: "{e}"')
             quit()
 
-    def _enterOrCreateDir(self, path):
+    def _enterOrCreateDir(self, path, sftp):
         # Try to enter the directory, if it does not exist, create new one
         try:
-            self.sftp.chdir(path)
+            sftp.chdir(path)
         except IOError as e:
             log(f'Creating new directory under "{path}"')
-            self.sftp.mkdir(path)
-            self.sftp.chdir(path)
+            sftp.mkdir(path)
+            sftp.chdir(path)
 
     def run(
             self,
@@ -168,6 +183,7 @@ class RemoteRunner():
     ):
         # Generate unique execution identifier used for data storage and further referencing
         execution_id = f'{datetime.datetime.now().strftime("%d-%m-%Y_%H%M%S")}#{uuid.uuid4().hex}'
+        execution_sftp = self.ssh.open_sftp()
 
         log(f'Started execution with id: {execution_id}\n=======================================')
 
@@ -188,7 +204,8 @@ class RemoteRunner():
                 script_path=script_path,
                 resource_paths=resource_paths,
                 dir_name=execution_id,
-                slurm_script_path=slurm_script_path
+                slurm_script_path=slurm_script_path,
+                sftp=execution_sftp
             )
 
         # Submit job to slurm queue
@@ -236,19 +253,19 @@ class RemoteRunner():
                 quit()
             logRemote(line)
 
-    def _transferFiles(self, dir_name: str, script_path: str, slurm_script_path: str, resource_paths: list[str] = None):
-        self._enterOrCreateDir(os.path.join(self.base_dir, dir_name))
+    def _transferFiles(self, sftp, dir_name: str, script_path: str, slurm_script_path: str, resource_paths: list[str] = None):
+        self._enterOrCreateDir(os.path.join(self.base_dir, dir_name), sftp)
 
         log('Transferring execution script:')
-        self.sftp.put(script_path, 'script.py', callback=progress)
+        sftp.put(script_path, 'script.py', callback=progress)
         log ('Transferring slurm script:')
-        self.sftp.put(slurm_script_path, 'job.sh', callback=progress)
+        sftp.put(slurm_script_path, 'job.sh', callback=progress)
 
         if resource_paths is not None:
-            self._enterOrCreateDir(os.path.join(self.base_dir, dir_name, self.resources_dirname))
+            self._enterOrCreateDir(os.path.join(self.base_dir, dir_name, self.resources_dirname), sftp)
             for path in resource_paths:
                 log(f'Transferring resource "{path}":')
-                self.sftp.put(path, os.path.basename(path), callback=progress)
+                sftp.put(path, os.path.basename(path), callback=progress)
 
     def _prepareSlurmScript(
             self,
@@ -268,7 +285,7 @@ class RemoteRunner():
 
         if slurm_modules is not None:
             for module in slurm_modules:
-                script_lines.append(f'ml {module}')
+                script_lines.append(f'module load {module}')
 
         script_lines.append(f'singularity exec {container_path} python script.py')
 
