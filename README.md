@@ -30,7 +30,7 @@ For the installation, you need a working C++(For Cython) and a Rust compiler.
     curl https://sh.rustup.rs -sSf | bash -s -- -y
 
     # Install Dependencies
-    pip instal setuptools-rust
+    pip install setuptools-rust
 
     # Install EasyChemML
     git clone https://github.com/mkueh/EasyChemML.git
@@ -43,7 +43,7 @@ For the installation, you need a working C++(For Cython) and a Rust compiler.
     # https://www.rust-lang.org/learn/get-started
 
     # Install Dependencies
-    pip instal setuptools-rust
+    pip install setuptools-rust
 
     # Install EasyChemML
     git clone https://github.com/mkueh/EasyChemML.git
