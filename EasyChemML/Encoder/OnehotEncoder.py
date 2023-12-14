@@ -18,39 +18,8 @@ class OnehotEncoder(AbstractEncoder):
     def __init__(self):
         super().__init__()
 
-    def fit(self, datatable: BatchTable, columns: List[str], n_jobs: int, **kwargs):
-        return
-
-    def convert(self, dataset:Dataset, columns:List[str], n_jobs: int, **kwargs):
-        return self._generateOnehot_parallel(dataset.getFeature_data(), columns, n_jobs, **kwargs)
-
-    def _singleThreaded_generateOnehot(self, dataset:Dataset, columns:List[str], n_jobs: int, **kwargs):
-        InputBuffer = dataset.getFeature_data()
-        iterator:BatchAccess = iter(InputBuffer)
-        batch: np.ndarray
-        dataTypHolder: BatchDatatypHolder = InputBuffer.getDatatypes()
-
-        containItems = SortedSet()
-        for batch in iterator:
-            for row in batch:
-                for item in row:
-                    containItems.add(item)
-
-        new_dataTypHolder = BatchDatatypHolder()
-        new_dataTypHolder['onehot'] = BatchDatatyp(BatchDatatypClass.NUMPY_INT8, (len(containItems),))
-
-        iterator: BatchAccess = iter(InputBuffer)
-        for batch in iterator:
-            out = new_dataTypHolder.createAEmptyNumpyArray(len(batch))
-
-            for x, row in enumerate(batch):
-                for y, smile in enumerate(containItems):
-                    if smile in row:
-                        out[x]['onehot'][y] = 1
-                    else:
-                        out[x]['onehot'][y] = 0
-
-            iterator <<= out
+    def convert(self, datatable:BatchTable, columns:List[str], n_jobs: int, **kwargs):
+        return self._generateOnehot_parallel(datatable, columns, n_jobs, **kwargs)
 
     def _generateOnehot_parallel(self, InputBuffer:BatchTable, columns:List[str], n_jobs: int, **kwargs):
         #Add Columns_processing
@@ -111,7 +80,7 @@ class OnehotEncoder(AbstractEncoder):
         return "e_onehot"
 
     @staticmethod
-    def isparallel():
+    def is_parallel():
         return True
 
     @staticmethod
