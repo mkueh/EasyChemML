@@ -19,12 +19,14 @@ class DRFPEncoder(AbstractEncoder):
     def __init__(self):
         super().__init__()
 
-    def convert(self, datatable: BatchTable, columns: List[str], n_jobs: int, output_column_name:str, fingerprint_size: int = 2048):
-        return self._singleThreaded_generateRandomFeature(datatable, columns, n_jobs, output_column_name,
-                                                          fingerprint_size)
+    def convert(self, datatable: BatchTable, columns: List[str], n_jobs: int, output_column_name:str, edukte_cols:[str],
+                reagenzien_cols:[str], product_cols:[str],fingerprint_size: int = 2048):
+        return self._singleThreaded_generateRandomFeature(datatable, columns, n_jobs, output_column_name, edukte_cols,
+                                                          reagenzien_cols, product_cols, fingerprint_size)
 
     def _singleThreaded_generateRandomFeature(self, InputBuffer: BatchTable, columns: List[str], n_jobs: int,
-                                              output_column_name: str, fingerprint_size: int):
+                                              output_column_name: str, edukte_cols:[str], reagenzien_cols:[str],
+                                              product_cols:[str], fingerprint_size: int):
         batch: np.ndarray
         dataTypHolder: BatchDatatypHolder = InputBuffer.getDatatypes()
 
@@ -43,11 +45,25 @@ class DRFPEncoder(AbstractEncoder):
                         out[x][exists_col] = row[exists_col]
 
                 reaction_smiles = ''
-                for i, column in enumerate(columns):
+                for i, column in enumerate(edukte_cols):
                     if i > 0:
                         reaction_smiles = reaction_smiles + '.' + row[column].decode("utf-8")
                     else:
                         reaction_smiles = row[column].decode("utf-8")
+                reaction_smiles = reaction_smiles + '>'
+
+                for i, column in enumerate(reagenzien_cols):
+                    if i > 0:
+                        reaction_smiles = reaction_smiles + '.' + row[column].decode("utf-8")
+                    else:
+                        reaction_smiles = reaction_smiles + row[column].decode("utf-8")
+
+                reaction_smiles = reaction_smiles + '>'
+                for i, column in enumerate(product_cols):
+                    if i > 0:
+                        reaction_smiles = reaction_smiles + '.' + row[column].decode("utf-8")
+                    else:
+                        reaction_smiles = reaction_smiles + row[column].decode("utf-8")
 
                 encode = DrfpEncoder.encode(reaction_smiles, n_folded_length=fingerprint_size)
                 out[x][output_column_name] = encode[0]

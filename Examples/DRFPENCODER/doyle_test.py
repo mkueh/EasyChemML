@@ -37,7 +37,7 @@ print('Start DRFPEncoder')
 
 drfp = DRFPEncoder()
 drfp.convert(datatable=dh['doyle'], columns=['Ligand', 'Additive', 'Base', 'Aryl halide'], output_column_name='rxnfp', fingerprint_size=2048,
-                    n_jobs=64)
+                    n_jobs=64, edukte_cols=['Ligand'], reagenzien_cols=['Additive', 'Base'], product_cols=['Aryl halide'])
 
 # ------------------------------------------------------------------------------------------------------------------
 
@@ -48,14 +48,14 @@ split_creator = Splitcreator()
 splitter_outer = ShuffleSplitter(1, 42, test_size=0.1)
 splitset = split_creator.generate_split(dh['doyle'], splitter_outer)
 
-train_dataset = Dataset(dh['doyle'], name='train', feature_col=['Ligand', 'Additive', 'Base', 'Aryl halide'], target_col=['Output'],
+train_dataset = Dataset(dh['doyle'], name='train', feature_col=['rxnfp'], target_col=['Output'],
                         split=splitset, env=env)
 
 job_factory = Job_Factory(env)
 job_runner = LocalRunner(env)
 
 catboost_model = Config(CatBoost_r, {'verbose': False, 'thread_count': n_jobs})
-job: ModelTrainJob = job_factory.create_ModelTrainJob('DOYLE_STD_ECFP_4_1024', train_dataset, catboost_model,
+job: ModelTrainJob = job_factory.create_ModelTrainJob('DOYLE_STD_DRFP_4_1024', train_dataset, catboost_model,
                                                       train_dataset.get_Splitset().
                                                       get_outer_split(0))
 job_runner.run_Job(job)
@@ -73,8 +73,8 @@ metricStack_r = MetricStack(
     {'r2': R2_Score()})
 
 loaded_model = CatBoost_r()
-loaded_model.load_model('DOYLE_STD_ECFP_4_1024_trained.model')
-job_prediction = ModelEvalJob('DOYLE_STD_ECFP_4_1024_test', loaded_model, dh['doyle'], ['Ligand', 'Additive', 'Base', 'Aryl halide'], dh['doyle'],
+loaded_model.load_model('DOYLE_STD_DRFP_4_1024_trained.model')
+job_prediction = ModelEvalJob('DOYLE_STD_DRFP_4_1024_test', loaded_model, dh['doyle'], ['rxnfp'], dh['doyle'],
                               ['Output'], metricStack_r)
 results = job_runner.run_Job(job_prediction)
 print(results.result_metric)
