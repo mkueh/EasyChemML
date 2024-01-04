@@ -1,89 +1,103 @@
-use std::rc::Rc;
 use std::env;
-use ndarray::Ix2;
-use numpy::{dtype, PyReadonlyArray1};
-
 
 use pyo3::prelude::*;
-use pyo3::types::PyList;
-use crate::BatchFunctions::py_BatchListFunctions_duplicates::{Duplicat_result_i16, Duplicat_result_i32, Duplicat_result_i64, Duplicat_result_i8, BatchListFunctions_duplicates_py};
 
-use crate::BatchSystem::BatchHolder::{BatchHolder, MemoryMode};
-use crate::BatchSystem::BatchTablesImplementation::BatchTable::{BatchTable};
+use crate::BatchFunctions::py_BatchListFunctions_duplicates::{
+    BatchListFunctions_duplicates_py, Duplicat_result_i16, Duplicat_result_i32,
+    Duplicat_result_i64, Duplicat_result_i8,
+};
+
 use crate::BatchFunctions::py_BatchSort::BatchSorter_Radix_py;
-use crate::BatchSystem::PythonInterfaces::py_rustBatchTable::{BatchTableF32Py, BatchTableF64Py, BatchTableI16Py, BatchTableI32Py, BatchTableI64Py, BatchTableI8Py};
-use crate::BatchSystem::PythonInterfaces::DType_Converter::{BatchDatatyp};
-
+use crate::BatchSystem::BatchHolder::{BatchHolder, MemoryMode};
+use crate::BatchSystem::BatchTablesImplementation::BatchTable::BatchTable;
+use crate::BatchSystem::PythonInterfaces::py_rustBatchTable::{
+    BatchTableF32Py, BatchTableF64Py, BatchTableI16Py, BatchTableI32Py, BatchTableI64Py,
+    BatchTableI8Py, BatchTableStringPy,
+};
 
 #[pyclass]
-pub struct BatchHolder_py  {
-    pub batchholder: BatchHolder
+pub struct BatchHolder_py {
+    pub batchholder: BatchHolder,
 }
 
 #[pymethods]
 impl BatchHolder_py {
-
     #[new]
     pub fn new(path: String) -> BatchHolder_py {
-        BatchHolder_py { batchholder: BatchHolder::new(&path)}
+        BatchHolder_py {
+            batchholder: BatchHolder::new(&path),
+        }
     }
 
     #[pyo3(text_signature = "($self, table_name, chunk_shape)")]
-    pub fn create_new_table(&mut self, table_name: String, chunk_shape: Vec<usize>, memory_mode_string: String){
-        if memory_mode_string == "InMemory"{
-            self.batchholder.create_batchtable(table_name, chunk_shape, MemoryMode::InMemory);
-        }else if memory_mode_string == "DirectIO" {
-            self.batchholder.create_batchtable(table_name, chunk_shape, MemoryMode::DirectIo);
-        }else {
+    pub fn create_new_table(
+        &mut self,
+        table_name: String,
+        chunk_shape: Vec<usize>,
+        memory_mode_string: String,
+    ) {
+        if memory_mode_string == "InMemory" {
+            self.batchholder
+                .create_batchtable(table_name, chunk_shape, MemoryMode::InMemory);
+        } else if memory_mode_string == "DirectIO" {
+            self.batchholder
+                .create_batchtable(table_name, chunk_shape, MemoryMode::DirectIo);
+        } else {
             panic!("MemoryMode not found {}", memory_mode_string);
         }
-
     }
 
     #[pyo3(text_signature = "($self, table_name, chunk_shape)")]
-    pub fn get_batchtable_i64(&mut self, table_name:String) -> PyResult<BatchTableI64Py>{
+    pub fn get_batchtable_i64(&mut self, table_name: String) -> PyResult<BatchTableI64Py> {
         let batchtable = self.batchholder.get_batchtable(table_name);
         let shape = batchtable.read().unwrap().get_shape();
-        Ok(BatchTableI64Py{ batchtable, shape })
+        Ok(BatchTableI64Py { batchtable, shape })
     }
 
     #[pyo3(text_signature = "($self, table_name, chunk_shape)")]
-    pub fn get_batchtable_i32(&mut self, table_name:String) -> PyResult<BatchTableI32Py>{
+    pub fn get_batchtable_i32(&mut self, table_name: String) -> PyResult<BatchTableI32Py> {
         let batchtable = self.batchholder.get_batchtable(table_name);
         let shape = batchtable.read().unwrap().get_shape();
-        Ok(BatchTableI32Py{ batchtable, shape })
+        Ok(BatchTableI32Py { batchtable, shape })
     }
 
     #[pyo3(text_signature = "($self, table_name, chunk_shape)")]
-    pub fn get_batchtable_i16(&mut self, table_name:String) -> PyResult<BatchTableI16Py>{
+    pub fn get_batchtable_i16(&mut self, table_name: String) -> PyResult<BatchTableI16Py> {
         let batchtable = self.batchholder.get_batchtable(table_name);
         let shape = batchtable.read().unwrap().get_shape();
-        Ok(BatchTableI16Py{ batchtable, shape })
+        Ok(BatchTableI16Py { batchtable, shape })
     }
 
     #[pyo3(text_signature = "($self, table_name, chunk_shape)")]
-    pub fn get_batchtable_i8(&mut self, table_name:String) -> PyResult<BatchTableI8Py>{
+    pub fn get_batchtable_i8(&mut self, table_name: String) -> PyResult<BatchTableI8Py> {
         let batchtable = self.batchholder.get_batchtable(table_name);
         let shape = batchtable.read().unwrap().get_shape();
-        Ok(BatchTableI8Py{ batchtable, shape })
+        Ok(BatchTableI8Py { batchtable, shape })
     }
 
     #[pyo3(text_signature = "($self, table_name, chunk_shape)")]
-    pub fn get_batchtable_f64(&mut self, table_name:String) -> PyResult<BatchTableF64Py>{
+    pub fn get_batchtable_f64(&mut self, table_name: String) -> PyResult<BatchTableF64Py> {
         let batchtable = self.batchholder.get_batchtable(table_name);
         let shape = batchtable.read().unwrap().get_shape();
-        Ok(BatchTableF64Py{ batchtable, shape })
+        Ok(BatchTableF64Py { batchtable, shape })
     }
 
     #[pyo3(text_signature = "($self, table_name, chunk_shape)")]
-    pub fn get_batchtable_f32(&mut self, table_name:String) -> PyResult<BatchTableF32Py>{
+    pub fn get_batchtable_f32(&mut self, table_name: String) -> PyResult<BatchTableF32Py> {
         let batchtable = self.batchholder.get_batchtable(table_name);
         let shape = batchtable.read().unwrap().get_shape();
-        Ok(BatchTableF32Py{ batchtable, shape })
+        Ok(BatchTableF32Py { batchtable, shape })
+    }
+
+    #[pyo3(text_signature = "($self, table_name, chunk_shape)")]
+    pub fn get_batchtable_string(&mut self, table_name: String) -> PyResult<BatchTableStringPy> {
+        let batchtable = self.batchholder.get_batchtable(table_name);
+        let shape = batchtable.read().unwrap().get_shape();
+        Ok(BatchTableStringPy { batchtable, shape })
     }
 
     #[pyo3(text_signature = "($self)")]
-    pub fn clean(&mut self){
+    pub fn clean(&mut self) {
         self.batchholder.clean();
     }
 }
@@ -99,6 +113,7 @@ fn pyRustBatchsystem(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<BatchTableI8Py>()?;
     m.add_class::<BatchTableF64Py>()?;
     m.add_class::<BatchTableF32Py>()?;
+    m.add_class::<BatchTableStringPy>()?;
     m.add_class::<BatchSorter_Radix_py>()?;
 
     m.add_class::<Duplicat_result_i8>()?;

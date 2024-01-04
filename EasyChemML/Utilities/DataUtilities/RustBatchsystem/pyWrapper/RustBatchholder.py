@@ -1,7 +1,6 @@
 import os.path
 from typing import Dict, List, Tuple, Any
 from enum import Enum
-
 import numpy as np
 from numpy.lib import recfunctions as rfn
 from tqdm import tqdm
@@ -35,7 +34,7 @@ class RustBatchholder:
         self.rustBatchtable = {}
 
     def transferToRust(self, bp: BatchPartition, table: str, columns: List[str] = None, memMode: MemoryMode = MemoryMode.InMemory):
-        bt = bp[table]
+        bt = bp[table] # bt = batchtable,bp = batchpartition
 
         if columns is None:
             columns = bt.getColumns()
@@ -58,8 +57,10 @@ class RustBatchholder:
                     loaded_chunk = bt.convert_2_ndarray(indicies=list(range(i, len(bt))), columns=columns)
                 else:
                     loaded_chunk = bt.convert_2_ndarray(indicies=list(range(i, i + chunksize)), columns=columns)
-
-                new_rbt.add_chunk(loaded_chunk)
+                if dataTypHolder[dataTypHolder.getColumns()[0]] == BatchDatatypClass.NUMPY_STRING and len(columns)==1:
+                    new_rbt.add_chunk_wrapper(loaded_chunk)
+                elif len(columns)==1:
+                    new_rbt.add_chunk(np.expand_dims(loaded_chunk, axis=1))
                 bar.update(len(loaded_chunk))
 
     def _create_typed_BatchTable(self, dtype: BatchDatatypHolder, tableName:str):
@@ -77,6 +78,8 @@ class RustBatchholder:
             return self.rustBatchholder.get_batchtable_f32(tableName)
         elif dtype == dtype.NUMPY_FLOAT64:
             return self.rustBatchholder.get_batchtable_f64(tableName)
+        elif dtype == dtype.NUMPY_STRING:
+            return self.rustBatchholder.get_batchtable_string(tableName)
 
     def getRustBatchTable(self, tableName: str):
         if tableName in self.rustBatchtable:
@@ -95,8 +98,12 @@ class RustBatchholder:
         bt = bp[newBatchTableName]
 
         for index, i in enumerate(range(0, len(bt), chunksize)):
-            loaded_chunk = rustbt.load_chunk(index)
-            loaded_chunk = rfn.unstructured_to_structured(loaded_chunk, dtype.toNUMPY_dtypes())
+            if dtype in BatchDatatypClass.NUMPY_STRING and len(shape) == 1:
+                loaded_chunk = rustbt.get_loaded_string_chunk(index)
+                loaded_chunk = np.array(loaded_chunk)
+            else:
+                loaded_chunk = rustbt.load_chunk(index)
+                loaded_chunk = rfn.unstructured_to_structured(loaded_chunk, dtype.toNUMPY_dtypes())
             if i + chunksize > len(bt):
                 bt[i:len(bt)] = loaded_chunk
             else:

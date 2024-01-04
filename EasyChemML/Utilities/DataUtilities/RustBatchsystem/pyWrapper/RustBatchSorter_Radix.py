@@ -15,7 +15,7 @@ class RustBatchSorter_Radix:
 
     def __init__(self, tmp_path: str):
         self._sorter = BatchSorter_Radix_py(os.path.join(tmp_path, 'sort_tmp'))
-
+# TODO: string support hinzufügen
     def sort(self, rustbatchholder: RustBatchholder, tableName):
         bt = rustbatchholder.getRustBatchTable(tableName)
         dtype = rustbatchholder.rustBatchtable[tableName][1]
