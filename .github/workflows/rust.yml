@@ -17,6 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build --manifest-path=/Utilities/DataUtilities/RustBatchsystem/Cargo.toml --verbose
+      run: cargo build --manifest-path=/home/runner/work/EasyChemML/EasyChemML/Utilities/DataUtilities/RustBatchsystem/Cargo.toml --verbose
     - name: Run tests
       run: cargo test --verbose
