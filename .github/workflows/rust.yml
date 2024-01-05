@@ -16,6 +16,6 @@ jobs:
 
     steps:
     - name: Find Cargo.toml
-      run: find $GITHUB_WORKSPACE -name "Cargo.toml" -exec basename {} \;
+      run: echo "${{  find $GITHUB_WORKSPACE -name "Cargo.toml" -exec basename {} \; }}"
 
 
