@@ -17,13 +17,11 @@ jobs:
       - name: find it
         id: find-cargo
         run: |
-          cargo_files=$(find $GITHUB_WORKSPACE -name "Cargo.toml")
-          echo "::set-output name=cargo-files::$cargo_files"
-
+          echo "cargo_files=${(find $GITHUB_WORKSPACE -name "Cargo.toml")}" >> $GITHUB_ENV
       - name: Use Cargo.toml paths
         run: |
           paths="${{ steps.find-cargo.outputs.cargo-files }}"
-          echo "Found Cargo.toml files: $paths"
+          printf '%s\n' "$cargo_files"
   lint:
     name: Lint
     runs-on: ubuntu-latest
