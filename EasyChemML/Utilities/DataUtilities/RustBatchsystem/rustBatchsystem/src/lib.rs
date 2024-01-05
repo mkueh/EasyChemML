@@ -4,6 +4,8 @@ pub mod BatchFunctions;
 pub mod BatchSystem;
 pub mod Utilities;
 
+pub mod impl_evo_fp;
+
 #[path = "../test/test_merge_sort.rs"]
 mod test_merge_sort;
 
