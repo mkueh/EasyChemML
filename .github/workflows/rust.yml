@@ -10,6 +10,20 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  find-cargo:
+    name: find Cargo.toml and echo path
+    runs-on: ubuntu-latest
+    steps:
+      - name: find it
+        id: find-cargo
+        run: |
+          cargo_files=$(find $GITHUB_WORKSPACE -name "Cargo.toml")
+          echo "::set-output name=cargo-files::$cargo_files"
+
+      - name: Use Cargo.toml paths
+        run: |
+          paths="${{ steps.find-cargo.outputs.cargo-files }}"
+          echo "Found Cargo.toml files: $paths"
   lint:
     name: Lint
     runs-on: ubuntu-latest
