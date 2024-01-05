@@ -17,7 +17,7 @@ jobs:
       - name: find it
         id: find-cargo
         run: |
-          echo "cargo_files=${(find $GITHUB_WORKSPACE -name "Cargo.toml")}" >> $GITHUB_ENV
+          echo "cargo_files={$(find $GITHUB_WORKSPACE -name "Cargo.toml")}" >> $GITHUB_ENV
       - name: Use Cargo.toml paths
         run: |
           paths="${{ steps.find-cargo.outputs.cargo-files }}"
