@@ -360,14 +360,14 @@ mod tests {
 
         let deserialization_result = Population::get_highest_saved_population(path);
         match deserialization_result {
-            Ok(Some(deserialized_population)) => {
+            Ok((Some(deserialized_population), step)) => {
                 assert_eq!(
                     deserialized_population.members.len(),
                     population.members.len(),
                     "The function should return the population with the highest step"
                 );
             }
-            Ok(None) => panic!("The function should return Some(Population), but it returned None"),
+            Ok((None, step)) => panic!("The function should return Some(Population), but it returned None"),
             Err(err) => panic!("The function returned an error: {}", err),
         }
 
