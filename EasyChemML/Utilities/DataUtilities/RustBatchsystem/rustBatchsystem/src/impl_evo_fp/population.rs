@@ -158,7 +158,7 @@ mod tests {
     use ndarray::{arr1, arr2};
     use pyo3::{IntoPy, Python};
     use std::collections::HashMap;
-    use tempfile::{tempdir, TempDir};
+    use tempfile::tempdir;
 
     #[test]
     fn test_calculate_population_metrics() {
