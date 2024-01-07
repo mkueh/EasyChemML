@@ -29,8 +29,10 @@ impl SmartsFingerprint {
         } else {
             let mut matches = Vec::new();
             for pattern in &self.patterns {
-                matches
-                    .push(smarts::get_matching_count(&pattern.to_ro_mol().unwrap(), &mol))
+                matches.push(smarts::get_matching_count(
+                    &pattern.to_ro_mol().unwrap(),
+                    &mol,
+                ))
             }
             matches
         }
