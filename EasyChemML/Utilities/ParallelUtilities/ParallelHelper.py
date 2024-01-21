@@ -51,6 +51,9 @@ class ParallelHelper(object):
                 print('!!! n_jobs is set to 61 !!!')
                 n_jobs = 61
 
+        if n_jobs == 1:
+            return None, 1
+
         if self._processPool is None:
             print(f'ProcessPool {self.__hash__()} is alive')
             return ProcessPoolExecutor(n_jobs), n_jobs
@@ -60,6 +63,8 @@ class ParallelHelper(object):
     def __del__(self):
         # self._processPool.close()
         # self._processPool.terminate()
+        if self._processPool is None:
+            return
         self._processPool.shutdown(wait=True, cancel_futures=True)
         print(f'ProcessPool {self.__hash__()} is shutdown')
 
@@ -115,6 +120,11 @@ class ParallelHelper(object):
                                       progressbar_args: Dict = {}, **kwargs):
         kwargs['out_dtypes'] = out_dtypes
         jobs = []
+
+        if self._max_worker and self._processPool is None:
+            new_indexqu = IndexQueue_Inorder(IQ_settings, 0, self._max_worker)
+            return ParallelHelper._parallelExecuter_function_returnArrays(new_indexqu, func, **kwargs)
+
         for i in range(self._max_worker):
             new_indexqu = IndexQueue_Inorder(IQ_settings, i, self._max_worker)
             j = self._processPool.submit(ParallelHelper._parallelExecuter_function_returnArrays,
@@ -135,6 +145,10 @@ class ParallelHelper(object):
                                   progressbar_args: Dict = {},
                                   **kwargs):
         jobs = []
+
+        if self._max_worker and self._processPool is None:
+            new_indexqu = IndexQueue_Inorder(IQ_settings, 0, self._max_worker)
+            return ParallelHelper._parallelExecuter_map_returnNew(out_dtypes, new_indexqu, func, **kwargs)
 
         for i in range(self._max_worker):
             new_indexqu = IndexQueue_Inorder(IQ_settings, i, self._max_worker)
