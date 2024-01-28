@@ -1,6 +1,6 @@
-mod fingerprint_evolution;
-mod fitness_functions;
-mod get_data;
+pub mod fingerprint_evolution;
+pub mod fitness_functions;
+pub mod get_data;
 mod population;
 mod primitives;
 mod smarts_fingerprint;

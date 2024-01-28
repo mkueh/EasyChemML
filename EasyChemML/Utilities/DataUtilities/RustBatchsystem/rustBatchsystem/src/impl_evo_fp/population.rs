@@ -3,7 +3,6 @@ use crate::impl_evo_fp::fitness_functions::single_dataset_fitness::{
 };
 use crate::impl_evo_fp::population::member::Member;
 use crate::impl_evo_fp::smarts_fingerprint::SmartsFingerprint;
-use itertools::Itertools;
 use ndarray::{Array, Ix1};
 use rdkit::ROMol;
 use serde::{Deserialize, Serialize};
@@ -21,33 +20,38 @@ pub struct Population {
     pub path: Option<String>,
 }
 
-pub fn generate_new_population(
-    population_size: u8,
-    fp_size: u8,
-    max_primitive_count: u8,
-    max_bound_count: u8,
-    bool_matching: bool,
-    data: &Vec<ROMol>,
-) -> Population {
-    let fingerprints = SmartsFingerprint::generate_smarts_fingerprints(
-        population_size,
-        fp_size,
-        max_primitive_count,
-        max_bound_count,
-        bool_matching,
-        data,
-    );
-    let mut members: Vec<Member> = Vec::new();
-    for fp in fingerprints {
-        members.push(Member::new(fp));
-    }
-    Population {
-        members,
-        path: None,
-    }
-}
-
 impl Population {
+    pub fn empty() -> Population {
+        Population {
+            members: Vec::new(),
+            path: None,
+        }
+    }
+    pub fn generate_new_population(
+        population_size: usize,
+        fp_size: usize,
+        max_primitive_count: u8,
+        max_bound_count: u8,
+        bool_matching: bool,
+        data: &Vec<ROMol>,
+    ) -> Population {
+        let fingerprints = SmartsFingerprint::generate_smarts_fingerprints(
+            population_size,
+            fp_size,
+            max_primitive_count,
+            max_bound_count,
+            bool_matching,
+            data,
+        );
+        let mut members: Vec<Member> = Vec::new();
+        for fp in fingerprints {
+            members.push(Member::new(fp));
+        }
+        Population {
+            members,
+            path: None,
+        }
+    }
     pub fn calculate_population_metrics(
         &mut self,
         features: &Vec<ROMol>,
@@ -56,6 +60,7 @@ impl Population {
         bool_matching: bool,
         fitness_function_config: FitnessFunctionConfig,
     ) {
+        println!("Calculate population metrics");
         for fingerprint in &mut self.members {
             fingerprint.metric = calculate_fingerprint_fitness(
                 fingerprint,
@@ -68,7 +73,7 @@ impl Population {
         }
     }
 
-    pub fn get_n_best_members(&mut self, n: usize) -> &[Member] {
+    pub fn n_best_members(&mut self, n: usize) -> Vec<Member> {
         if n > self.members.len() {
             panic!("Cannot get more best members than there are members in the population");
         }
@@ -80,7 +85,8 @@ impl Population {
                 .partial_cmp(&member_a.metric.unwrap())
                 .unwrap()
         });
-        &self.members[0..n]
+        let result_vec = &self.members[0..n].to_vec();
+        result_vec.to_owned()
     }
 
     pub fn save_population(&mut self, path: &str, step: i8) -> Result<(), std::io::Error> {
@@ -99,17 +105,16 @@ impl Population {
         Ok(())
     }
 
-    pub fn get_saved_population(
-        path: &str,
-        found_max_step: i8,
-    ) -> Result<Population, std::io::Error> {
+    pub fn saved_population(path: &str, found_max_step: i8) -> Result<Population, std::io::Error> {
         let file_path = &format!("{}/evolution_step_{}.bin", path, found_max_step);
         let reader = BufReader::new(File::open(file_path).unwrap());
         let deserialized_population = bincode::deserialize_from(reader).unwrap();
         Ok(deserialized_population)
     }
 
-    pub fn get_highest_saved_population(path: &str) -> Result<(Option<Population>, i8), std::io::Error> {
+    pub fn highest_saved_population(
+        path: &str,
+    ) -> Result<(Option<Population>, i8), std::io::Error> {
         let mut found_max_step: u32 = 0;
         const RADIX: u32 = 10;
 
@@ -138,10 +143,9 @@ impl Population {
             }
         }
         if found_max_step == 0 {
-            Ok((None,0 ))
+            Ok((None, 0))
         } else {
-            let deserialized_population =
-                Population::get_saved_population(path, found_max_step as i8)?;
+            let deserialized_population = Population::saved_population(path, found_max_step as i8)?;
             println!("{:?}", deserialized_population);
             Ok((Some(deserialized_population), found_max_step as i8))
         }
@@ -186,7 +190,7 @@ mod tests {
             ["CC(C)(CCCCCOCCc1ccccc1)NCCc1ccc(O)c2nc(O)sc12".to_string()],
             ["O=C(Nc1nnc(C(=O)Nc2ccc(N3CCOCC3)cc2)o1)c1ccc(Cl)cc1".to_string()],
         ]));
-        let mut population = generate_new_population(10, 5, 5, 5, false, &features);
+        let mut population = Population::generate_new_population(10, 5, 5, 5, false, &features);
         let regression_targets = Some(arr1(&[
             3.54, -1.18, 3.69, 3.37, 3.1, 3.14, -0.72, 0.34, 3.05, 2.25, 1.51, 2.61, -0.08, 1.95,
             1.34, 3.2, 1.6, 3.77, 3.15, 0.32, 2.92, 1.92,
@@ -255,7 +259,7 @@ mod tests {
             ["CC(C)(CCCCCOCCc1ccccc1)NCCc1ccc(O)c2nc(O)sc12".to_string()],
             ["O=C(Nc1nnc(C(=O)Nc2ccc(N3CCOCC3)cc2)o1)c1ccc(Cl)cc1".to_string()],
         ]));
-        let mut population = generate_new_population(10, 5, 5, 5, false, &features);
+        let mut population = Population::generate_new_population(10, 5, 5, 5, false, &features);
         let temp_dir = tempdir().unwrap();
         let path = temp_dir.path().to_str().unwrap();
         let step = 3;
@@ -301,12 +305,12 @@ mod tests {
             ["CC(C)(CCCCCOCCc1ccccc1)NCCc1ccc(O)c2nc(O)sc12".to_string()],
             ["O=C(Nc1nnc(C(=O)Nc2ccc(N3CCOCC3)cc2)o1)c1ccc(Cl)cc1".to_string()],
         ]));
-        let mut population = generate_new_population(10, 5, 5, 5, false, &features);
+        let mut population = Population::generate_new_population(10, 5, 5, 5, false, &features);
         let temp_dir = tempdir().unwrap();
         let path = temp_dir.path().to_str().unwrap();
         let step = 3;
         let saving_result = &mut population.save_population(path, step);
-        let deserialization_result = Population::get_saved_population(path, step);
+        let deserialization_result = Population::saved_population(path, step);
         match deserialization_result {
             Ok(deserialized_population) => {
                 // Add assertions to check the deserialized_population
@@ -346,7 +350,7 @@ mod tests {
             ["CC(C)(CCCCCOCCc1ccccc1)NCCc1ccc(O)c2nc(O)sc12".to_string()],
             ["O=C(Nc1nnc(C(=O)Nc2ccc(N3CCOCC3)cc2)o1)c1ccc(Cl)cc1".to_string()],
         ]));
-        let mut population = generate_new_population(10, 5, 5, 5, false, &features);
+        let mut population = Population::generate_new_population(10, 5, 5, 5, false, &features);
         let temp_dir = tempdir().unwrap();
         let path = temp_dir.path().to_str().unwrap();
         let step = 3;
@@ -358,7 +362,7 @@ mod tests {
             file.write_all(&[i]).expect("Unable to write data");
         }
 
-        let deserialization_result = Population::get_highest_saved_population(path);
+        let deserialization_result = Population::highest_saved_population(path);
         match deserialization_result {
             Ok((Some(deserialized_population), step)) => {
                 assert_eq!(
@@ -367,7 +371,9 @@ mod tests {
                     "The function should return the population with the highest step"
                 );
             }
-            Ok((None, step)) => panic!("The function should return Some(Population), but it returned None"),
+            Ok((None, step)) => {
+                panic!("The function should return Some(Population), but it returned None")
+            }
             Err(err) => panic!("The function returned an error: {}", err),
         }
 

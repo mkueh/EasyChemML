@@ -1,5 +1,6 @@
 use crate::impl_evo_fp::smarts_fingerprint::SmartsFingerprint;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Member {
@@ -13,5 +14,13 @@ impl Member {
             fingerprint,
             metric: None,
         }
+    }
+}
+
+impl Display for Member {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut fingerprint_string = self.fingerprint.to_string();
+
+        write!(f, "{}", fingerprint_string)
     }
 }

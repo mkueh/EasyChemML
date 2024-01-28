@@ -71,7 +71,7 @@ mod tests {
     use super::*;
     use crate::impl_evo_fp::fitness_functions::fitness_metrics::RegressionMetric::R2ScoreSingleTarget;
     use crate::impl_evo_fp::get_data::convert_data_to_mol;
-    use crate::impl_evo_fp::population::generate_new_population;
+    use crate::impl_evo_fp::population::Population;
     use ndarray::{arr1, arr2};
 
     #[test]
@@ -100,7 +100,7 @@ mod tests {
             ["CC(C)(CCCCCOCCc1ccccc1)NCCc1ccc(O)c2nc(O)sc12".to_string()],
             ["O=C(Nc1nnc(C(=O)Nc2ccc(N3CCOCC3)cc2)o1)c1ccc(Cl)cc1".to_string()],
         ]));
-        let population = generate_new_population(10, 5, 5, 5, false, &data);
+        let population = Population::generate_new_population(10, 5, 5, 5, false, &data);
         let regression_targets = arr1(&[
             3.54, -1.18, 3.69, 3.37, 3.1, 3.14, -0.72, 0.34, 3.05, 2.25, 1.51, 2.61, -0.08, 1.95,
             1.34, 3.2, 1.6, 3.77, 3.15, 0.32, 2.92, 1.92,

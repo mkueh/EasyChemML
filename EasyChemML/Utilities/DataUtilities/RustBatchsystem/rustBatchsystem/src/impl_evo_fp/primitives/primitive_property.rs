@@ -16,7 +16,7 @@ static PROPERTY_LIST: phf::Map<&'static str, [i8; 2]> = phf_map! {
     "Z"=> [0, 5]
 };
 
-pub fn is_primitive_usefull(
+pub fn is_primitive_useful(
     primitive_str: &str,
     mol_data: &Vec<ROMol>,
     bool_matching: bool,
@@ -39,14 +39,14 @@ pub fn create_relev_property_list(mol_data: &Vec<ROMol>, bool_matching: bool) ->
 
         for interval in intervals {
             let property_int_str = format!("{}{{{}-{}}}", prop, interval.0, interval.1); //e. g. "D{1-6}", "D{2-3}"
-            if is_primitive_usefull(prop, mol_data, bool_matching) {
+            if is_primitive_useful(prop, mol_data, bool_matching) {
                 complete_property.push(property_int_str);
             }
         }
-        println!(
-            "Found {:?} property patterns: {:?}",
-            prop, &complete_property
-        );
+        // println!(
+        //     "Found {:?} property patterns: {:?}",
+        //     prop, &complete_property
+        // );
         all_properties.append(&mut complete_property);
     }
     all_properties
@@ -62,7 +62,7 @@ fn calc_relevant_boundaries(
     let mut relev_boundaries: Vec<i8> = Vec::new();
     for num in start..=end {
         let boundary_str = format!("{}{{{}-{}}}", prop_str, num.to_string(), num.to_string());
-        if is_primitive_usefull(&boundary_str, mol_data, bool_matching) {
+        if is_primitive_useful(&boundary_str, mol_data, bool_matching) {
             relev_boundaries.push(num);
         }
     }

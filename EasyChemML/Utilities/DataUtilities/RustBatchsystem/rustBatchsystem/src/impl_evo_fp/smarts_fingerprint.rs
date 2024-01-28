@@ -3,6 +3,7 @@ use rand::prelude::SliceRandom;
 use rand::thread_rng;
 use rdkit::ROMol;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 pub mod smarts;
 pub mod smarts_pattern;
@@ -18,7 +19,7 @@ impl SmartsFingerprint {
             patterns: smarts_patterns,
         }
     }
-    pub fn get_number_matches(&self, bool_matching: bool, mol: &ROMol) -> Vec<usize> {
+    pub fn number_substruct_matches(&self, bool_matching: bool, mol: &ROMol) -> Vec<usize> {
         if bool_matching {
             let mut matches = Vec::new();
             for pattern in &self.patterns {
@@ -39,8 +40,8 @@ impl SmartsFingerprint {
     }
 
     pub fn generate_smarts_fingerprints(
-        population_size: u8,
-        fp_size: u8,
+        population_size: usize,
+        fp_size: usize,
         max_primitive_count: u8,
         max_bound_count: u8,
         bool_matching: bool,
@@ -62,7 +63,7 @@ impl SmartsFingerprint {
         smarts_patterns.shuffle(&mut thread_rng());
 
         let patterns_split: Vec<&[SMARTSPattern]> =
-            smarts_patterns.chunks(population_size as usize).collect();
+            smarts_patterns.chunks(fp_size as usize).collect();
         let fingerprints: Vec<SmartsFingerprint> = patterns_split
             .iter()
             .map(|chunk| SmartsFingerprint::new(chunk.to_vec()))
@@ -71,11 +72,24 @@ impl SmartsFingerprint {
     }
 }
 
+impl Display for SmartsFingerprint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut smarts_string = String::new();
+        for pattern in &self.patterns {
+            smarts_string.push_str(&pattern.to_string());
+            smarts_string.push_str(" ");
+        }
+        write!(f, "{}", smarts_string)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::impl_evo_fp::get_data::convert_data_to_mol;
     use ndarray::arr2;
+    use std::collections::HashMap;
+    use uuid::Uuid;
 
     #[test]
     fn test_generate_smarts_fingerprints() {
@@ -101,5 +115,39 @@ mod tests {
             &data,
         );
         assert_eq!(fingerprints.len(), population_size as usize);
+    }
+    #[test]
+    fn test_shuffle() {
+        let population_size = 1;
+        let fp_size = 3;
+        let max_primitive_count = 5;
+        let max_bound_count = 5;
+        let bool_matching = true;
+        let data = convert_data_to_mol(&arr2(&[
+            ["Cn1c(CN2CCN(c3ccc(Cl)cc3)CC2)nc2ccccc21".to_string()],
+            ["COC(=O)[C@H](c1ccccc1Cl)N1CCc2sccc2C1".to_string()],
+            ["O=C(NC1Cc2ccccc2N(C[C@@H](O)CO)C1=O)c1cc2cc(Cl)sc2[nH]1".to_string()],
+            ["Cc1cccc(C[C@H](NC(=O)c2cc(C(C)(C)C)nn2C)C(=O)NCC#N)c1".to_string()],
+            ["OC1(C#Cc2ccc(-c3ccccc3)cc2)CN2CCC1CC2".to_string()],
+            ["COc1cc(OC)c(S(=O)(=O)NCc2ccccc2N2CCCCC2)cc1NC(=O)CCC(=O)O".to_string()],
+        ]));
+        let mut fingerprints = SmartsFingerprint::generate_smarts_fingerprints(
+            population_size,
+            fp_size,
+            max_primitive_count,
+            max_bound_count,
+            bool_matching,
+            &data,
+        );
+        let mut rng = rand::thread_rng();
+        for pattern in &fingerprints[0].patterns {
+            println!("pattern: {:?}", pattern);
+        }
+
+        let shuffled_pattern = fingerprints[0].patterns.shuffle(&mut rng);
+
+        for pattern in &fingerprints[0].patterns {
+            println!("shuffled pattern: {:?}", pattern);
+        }
     }
 }

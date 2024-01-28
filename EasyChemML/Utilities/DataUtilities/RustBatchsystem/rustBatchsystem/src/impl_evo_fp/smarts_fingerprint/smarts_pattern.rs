@@ -9,7 +9,7 @@ use std::fmt::{Display, Formatter};
 use std::iter::zip;
 use uuid::Uuid;
 
-static BONDS: [char; 6] = [
+pub static BONDS: [char; 6] = [
     // bonds ->  atoms + bonds + atoms
     '-', // single bond (aliphatic)
     //'/',           //directional bond "up"
@@ -31,8 +31,8 @@ pub static LOGIC_BI_OPERATIONS: [char; 1] = [
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct SMARTSPattern {
-    atomics: Vec<String>,
-    bonds: Vec<char>,
+    pub(crate) atomics: Vec<String>,
+    pub(crate) bonds: Vec<char>,
     create_info: HashMap<String, String>,
     id: Uuid,
 }
@@ -46,6 +46,18 @@ pub enum SMARTSPatternError {
 }
 
 impl SMARTSPattern {
+    pub fn new(
+        atomics: Vec<String>,
+        bonds: Vec<char>,
+        create_info: HashMap<String, String>,
+    ) -> SMARTSPattern {
+        SMARTSPattern {
+            atomics,
+            bonds,
+            create_info,
+            id: Uuid::new_v4(),
+        }
+    }
     pub fn generate_smarts_pattern(
         max_primitive_count: u8,
         max_bound_count: u8,
@@ -65,10 +77,10 @@ impl SMARTSPattern {
             let mut bonds = Vec::new();
             let mut atomics = Vec::new();
             for i in 0..=bound_count {
-                let primitive_count = if max_primitive_count == 1 {
+                let primitive_count = if max_primitive_count == 1 && bound_count == 0 {
                     1
                 } else {
-                    rng.gen_range(1..=max_primitive_count)
+                    rng.gen_range(bound_count..=max_primitive_count)
                 };
                 // returns (atomics, step_counter)
                 let pattern_tuple =
@@ -114,6 +126,37 @@ impl SMARTSPattern {
         }
         Ok(ro_mol)
     }
+
+    pub fn genetic_slice(
+        &self,
+        start: usize,
+        end: usize,
+        include_end_bond: bool,
+    ) -> (Vec<String>, Vec<char>) {
+        if include_end_bond {
+            (
+                self.atomics[start..=end].to_vec(),
+                self.bonds[start..=end].to_vec(),
+            )
+        } else {
+            (
+                self.atomics[start..=end].to_vec(),
+                self.bonds[start..end].to_vec(),
+            )
+        }
+    }
+
+    pub fn random_gene_intervall(&self) -> (usize, usize) {
+        let mut rng = rand::thread_rng();
+        let start = rng.gen_range(0..self.atomics.len());
+        let end = rng.gen_range(start..self.atomics.len());
+        if start == end && end != self.atomics.len() - 1 {
+            return (start, end + 1);
+        } else if start == end && end == self.atomics.len() - 1 {
+            return (start - 1, end);
+        }
+        (start, end)
+    }
 }
 impl Display for SMARTSPattern {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -123,7 +166,7 @@ impl Display for SMARTSPattern {
             result_string.push_str(atomic);
             result_string.push(*bond);
         }
-        result_string.push_str(&self.atomics.last().unwrap());
+        result_string.push_str(&self.atomics.last().unwrap_or(&"".to_string()));
 
         write!(f, "{}", result_string)
     }

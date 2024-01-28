@@ -80,7 +80,6 @@ pub fn generate_regression_predictions(
 
     let feature_data =
         generate_regression_feature_data(&population_member.fingerprint, features, bool_matching);
-
     let dataset = Dataset::new(feature_data, targets);
     // Manual cross validation
     for _ in 0..fitness_function_config.k_folds {
@@ -122,6 +121,7 @@ fn calculate_predictions<T: numpy::Element + for<'a> FromPyObject<'a>>(
                 ),
             )
             .expect("Could not initiate model");
+        let targets = train_data.targets();
 
         model
             .call_method1(

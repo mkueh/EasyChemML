@@ -1,5 +1,3 @@
-use crate::impl_evo_fp::population::generate_new_population;
-use crate::impl_evo_fp::smarts_fingerprint::smarts_pattern::SMARTSPattern;
 use crate::impl_evo_fp::smarts_fingerprint::SmartsFingerprint;
 use itertools::enumerate;
 use ndarray::{arr2, Array2};
@@ -23,7 +21,7 @@ pub fn generate_regression_feature_data(
     let mut feature_array: Array2<f64> = Array2::zeros((data.len(), fingerprint.patterns.len()));
 
     for (row_index, entry) in enumerate(data) {
-        let matches = fingerprint.get_number_matches(bool_matching, entry);
+        let matches = fingerprint.number_substruct_matches(bool_matching, entry);
         for (col_index, value) in matches.iter().enumerate() {
             feature_array[[row_index, col_index]] = *value as f64;
         }
@@ -39,7 +37,7 @@ pub fn generate_classification_feature_data(
     let mut feature_array: Array2<usize> = Array2::zeros((data.len(), fingerprint.patterns.len()));
 
     for (row_index, entry) in enumerate(data) {
-        let matches = fingerprint.get_number_matches(bool_matching, entry);
+        let matches = fingerprint.number_substruct_matches(bool_matching, entry);
         for (col_index, value) in matches.iter().enumerate() {
             feature_array[[row_index, col_index]] = *value;
         }
@@ -50,6 +48,7 @@ pub fn generate_classification_feature_data(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::impl_evo_fp::population::Population;
 
     #[test]
     fn test_generate_regression_feature_data() {
@@ -61,7 +60,7 @@ mod tests {
             ["OC1(C#Cc2ccc(-c3ccccc3)cc2)CN2CCC1CC2".to_string()],
             ["COc1cc(OC)c(S(=O)(=O)NCc2ccccc2N2CCCCC2)cc1NC(=O)CCC(=O)O".to_string()],
         ]));
-        let population = generate_new_population(3, 5, 5, 5, true, &data);
+        let population = Population::generate_new_population(3, 5, 5, 5, true, &data);
         let fp = population.members[0].fingerprint.clone();
         let bool_matching = false;
         let feature_data = generate_regression_feature_data(&fp, &data, bool_matching);
