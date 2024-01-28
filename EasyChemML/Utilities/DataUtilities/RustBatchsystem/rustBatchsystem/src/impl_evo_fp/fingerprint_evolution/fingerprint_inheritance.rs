@@ -4,7 +4,6 @@ use crate::impl_evo_fp::smarts_fingerprint::smarts::is_smarts_relevant;
 use crate::impl_evo_fp::smarts_fingerprint::smarts_pattern::SMARTSPattern;
 use crate::impl_evo_fp::smarts_fingerprint::{smarts_pattern, SmartsFingerprint};
 use itertools::Itertools;
-use num::ToPrimitive;
 use rand::prelude::SliceRandom;
 use rand::Rng;
 use rdkit::ROMol;
@@ -16,7 +15,6 @@ pub fn evolve_population(
     number_kids: usize,
     parents: &[Member],
     feature_data: &Vec<ROMol>,
-    evolution_step: i8,
 ) -> Vec<Member> {
     let mut rng = rand::thread_rng();
     let mut kids = Vec::new();
@@ -31,7 +29,6 @@ pub fn evolve_population(
             eltern,
             &evolution_config,
             feature_data,
-            evolution_step,
         ))
     }
     println!("Mutation complete!");
@@ -42,7 +39,6 @@ fn mutate(
     parents: &(Member, Member),
     evolution_config: &EvolutionConfig,
     feature_data: &Vec<ROMol>,
-    evolution_step: i8,
 ) -> Member {
     loop {
         let mut rng = rand::thread_rng();
@@ -62,7 +58,6 @@ fn mutate(
                     evolution_config,
                     (&mut vater, &mut mutter),
                     feature_data,
-                    evolution_step,
                 );
                 if sliced_pattern.is_ok() {
                     new_genes.push(sliced_pattern.unwrap());
@@ -102,7 +97,6 @@ fn slice_mutation(
     evolution_config: &EvolutionConfig,
     parents: (&mut SMARTSPattern, &mut SMARTSPattern),
     feature_data: &Vec<ROMol>,
-    evolution_step: i8,
 ) -> Result<SMARTSPattern, FingerprintEvolutionError> {
     for _ in 0..evolution_config.gene_recombination_attempts {
         let mut new_atomics = Vec::new();

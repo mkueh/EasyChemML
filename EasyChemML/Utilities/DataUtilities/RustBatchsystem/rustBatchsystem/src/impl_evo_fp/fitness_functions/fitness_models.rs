@@ -121,7 +121,6 @@ fn calculate_predictions<T: numpy::Element + for<'a> FromPyObject<'a>>(
                 ),
             )
             .expect("Could not initiate model");
-        let targets = train_data.targets();
 
         model
             .call_method1(

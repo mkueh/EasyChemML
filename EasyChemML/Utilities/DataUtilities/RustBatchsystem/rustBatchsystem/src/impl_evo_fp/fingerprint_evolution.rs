@@ -44,8 +44,6 @@ pub fn create_the_one_fingerprint(
     regression_targets: &Option<Array<f64, Ix1>>,
     classification_targets: &Option<Array<usize, Ix1>>,
 ) -> Result<Member, std::io::Error> {
-    // TODO: move upwards to only receive mol_data in this method
-    // let mol_data = convert_data_to_mol(feature_data);
     println!("One fingerprint to rule them all!!");
     let (existing_population, mut found_steps) =
         Population::highest_saved_population(&evolution_config.work_folder)?;
@@ -79,7 +77,7 @@ pub fn create_the_one_fingerprint(
     let mut evolved_population: Population = Population::empty();
     for i in found_steps..=evolution_config.evolution_steps as i8 {
         println!("Evolution step {}", i);
-        evolved_population = evolution_step(&evolution_config, &mol_data, &mut population, i);
+        evolved_population = evolution_step(&evolution_config, &mol_data, &mut population);
         evolved_population.calculate_population_metrics(
             &mol_data,
             regression_targets.clone(),
@@ -107,7 +105,6 @@ fn evolution_step(
     evolution_config: &EvolutionConfig,
     feature_data: &Vec<ROMol>,
     start_population: &mut Population,
-    evolution_step: i8,
 ) -> Population {
     // TODO: ganzzahlig runden
     let number_best =
@@ -133,7 +130,6 @@ fn evolution_step(
         number_kids,
         &best_members,
         feature_data,
-        evolution_step,
     );
     new_population.members.append(&mut kids);
     new_population.members.append(&mut best_members);
@@ -262,7 +258,7 @@ mod tests {
         let array_target_data = Array1::from_shape_vec(target_data.len(), target_data).unwrap();
         println!("Len targets: {:?}", array_target_data.len());
 
-        let mol_data = crate::impl_evo_fp::get_data::convert_data_to_mol(&array_data);
+        let mol_data = convert_data_to_mol(&array_data);
         let temp_dir = tempdir().unwrap();
         let path = temp_dir.path().to_str().unwrap();
         // Create instances of the required types

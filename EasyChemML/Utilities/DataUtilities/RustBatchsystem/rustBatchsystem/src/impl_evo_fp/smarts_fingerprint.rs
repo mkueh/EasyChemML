@@ -88,8 +88,6 @@ mod tests {
     use super::*;
     use crate::impl_evo_fp::get_data::convert_data_to_mol;
     use ndarray::arr2;
-    use std::collections::HashMap;
-    use uuid::Uuid;
 
     #[test]
     fn test_generate_smarts_fingerprints() {
