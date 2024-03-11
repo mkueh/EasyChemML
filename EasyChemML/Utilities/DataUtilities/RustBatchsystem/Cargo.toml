@@ -6,12 +6,14 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "pyRustBatchsystem"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "lib"]
 path = "rustBatchsystem/src/lib.rs"
 
 [dependencies]
-pyo3 = { version = "0.17.3", features = ["extension-module","serde","hashbrown","eyre","anyhow" ] }
+pyo3 = { version = "0.17.3", features = ["extension-module","serde","hashbrown","eyre","anyhow", "auto-initialize" ] }
 serde = "1.0.150"
+rdkit-sys = { version = "0.4.4", features = ["dynamic-linking-from-conda"] }
+rdkit  = "0.4.4"
 serde_json  = "1.0.89"
 postcard = {version = "1.0.2", features=["alloc"]}
 numpy = "0.17.2"
@@ -25,9 +27,32 @@ hex = "0.4.3"
 kdam = "0.3.0"
 lz4 = "1.24.0"
 flexbuffers = "2.0.0"
+linfa = "0.7.0"
+num = "0.4.1"
+bincode = "1.3.3"
+tempfile = "3.9.0"
+walkdir = "2.4.0"
+plotters = "0.3.5"
+csv = "1.3.0"
+itertools = "0.12.0"
+phf = { version = "0.11.2", features = ["macros"] }
 
 [dependencies.ndarray-npy]
 version = "0.8.1"
 default-features = false
 features = ["num-complex-0_4", "npz"]
 
+[dependencies.uuid]
+version = "1.6.1"
+features = ["v4", "fast-rng", "macro-diagnostics", "serde"]
+
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"] }
+
+[[bench]]
+name = "my_benchmark"
+harness = false
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
