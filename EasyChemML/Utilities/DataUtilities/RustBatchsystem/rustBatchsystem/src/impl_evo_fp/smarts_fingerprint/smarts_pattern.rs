@@ -111,7 +111,6 @@ impl SMARTSPattern {
             }
         }
     }
-    // TODO: Switch back to RWMolError
     pub fn to_rw_mol(&self) -> Result<RWMol, Box<dyn Error>> {
         let smarts = self.to_string();
         match RWMol::from_smarts(&smarts) {
