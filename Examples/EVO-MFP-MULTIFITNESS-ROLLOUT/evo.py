@@ -5,7 +5,7 @@ from EasyChemML.DataImport.Module.XLSX import XLSX
 from EasyChemML.Encoder.impl_RdkitConverter.MolRdkitConverter import MolRdkitConverter
 from EasyChemML.Environment import Environment
 
-from EasyChemML.Encoder.EvoFP import EvoFP
+from EasyChemML.Encoder.DEPR_EvoFP import EvoFP
 from EasyChemML.Encoder.impl_EvoFP.EVOFingerprint_Enum import FeatureTyp
 from EasyChemML.JobSystem.JobFactory.JobFactory import Job_Factory
 from EasyChemML.JobSystem.JobFactory.Module.Jobs import ModelTrainEvalJob

@@ -4,7 +4,7 @@ from EasyChemML.Encoder.impl_RdkitConverter.MolRdkitConverter import MolRdkitCon
 from EasyChemML.Encoder.impl_EvoFP.Fitnessfunction.ModelWrapper_Fitness import ModelWrapper_Fitness
 from EasyChemML.Environment import Environment, EasyProjectEnvironment
 
-from EasyChemML.Encoder.EvoFP import EvoFP
+from EasyChemML.Encoder.DEPR_EvoFP import EvoFP
 from EasyChemML.Encoder.impl_EvoFP.EVOFingerprint_Enum import FeatureTyp
 from EasyChemML.JobSystem.JobFactory.JobFactory import Job_Factory
 from EasyChemML.JobSystem.JobFactory.Module.Jobs import ModelTrainEvalJob
