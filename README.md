@@ -19,6 +19,7 @@ Chem, Volume 6, Issue 6, 2020, Pages 1379-1390, ISSN 2451-9294,* https://doi.org
 
 * *F. Strieth-Kalthoff, F. Sandfort, M. Kühnemund, F. R. Schäfer, H. Kuchen, F.Glorius, Angew. Chem. Int. Ed. 2022, 61, e202204647; Angew. Chem. 2022, 134, e202204647.* https://onlinelibrary.wiley.com/doi/full/10.1002/anie.202204647
 
+* *Pflüger, P. M., Kühnemund, M., Katzenburg, F., Kuchen, H., & Glorius, F. (2024). An evolutionary algorithm for interpretable molecular representations. Chem.* https://doi.org/10.1016/j.chempr.2024.02.004 
 
 # Install
 
@@ -159,6 +160,7 @@ Look inside the Example folder
 * MFF
 * OnehotEncoder
 * EasyDescriptor (support only Molmass yet)
+* EVO-MFP (evolutionary trained fingerprint)
 
 
 ## Model
