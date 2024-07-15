@@ -51,11 +51,11 @@ class BatchTable:
         if not (isinstance(value, np.ndarray) or isinstance(value, np.void)):
             raise Exception(f'the passed batch is not a numpy array or numpy array entry| {type(value)}')
 
-        if not self.getDatatypes().check_containsObjects() and not value.dtype == self[0].dtype:
+        my_datatypes: BatchDatatypHolder = self.getDatatypes()
+
+        if my_datatypes.check_containsObjects() or not (value.dtype == self[0].dtype or (BatchDatatypClass.NUMPY_STRING in my_datatypes and len(value.shape)==1)):
             raise Exception(f'the dtype of the numpy array is different to the batchtable | {type(value)}')
         value: np.array = value
-
-        my_datatypes: BatchDatatypHolder = self.getDatatypes()
 
         if BatchDatatypClass.PYTHON_OBJECT in my_datatypes:
             my_datatypes.removeAllnoneObject()
@@ -270,7 +270,7 @@ class BatchTable:
         else:
             return 0
 
-    def convert_2_ndarray(self, indicies: List[int] = None, columns: List[str] = None) -> np.ndarray:
+    def convert_2_ndarray(self, indicies: List[int] = None, columns: List[str] = None):
         if columns is None:
             columns = self.getColumns()
 
@@ -292,7 +292,6 @@ class BatchTable:
         else:
             raise Exception('different dTypes are not supported')
 
-        np_dtype = datatyp.toNUMPY()
         # if indicies is not None:
         #    shape = (len(indicies), self.getWith(columns))
         # else:
@@ -301,8 +300,7 @@ class BatchTable:
         if indicies is None:
             if datatyp == BatchDatatypClass.NUMPY_STRING:
                 raw_data = self.getComplexSelection(columns, indicies)
-                data = rfn.structured_to_unstructured(raw_data, dtype=np_dtype)
-                return data
+                return [i[0].decode() for i in raw_data]
             else:
                 raw_data = self.getComplexSelection(columns, indicies)
                 if len(columns) == 1:
@@ -313,8 +311,8 @@ class BatchTable:
         else:
             if datatyp == BatchDatatypClass.NUMPY_STRING:
                 raw_data = self.getComplexSelection(columns, indicies)
-                data = rfn.structured_to_unstructured(raw_data, dtype=np_dtype)
-                return data
+                return [i[0].decode() for i in raw_data]
+
             else:
                 raw_data: np.ndarray = self.getComplexSelection(columns, indicies)
                 if len(columns) == 1:

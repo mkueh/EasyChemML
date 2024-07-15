@@ -49,7 +49,7 @@ class RustBatchListFunctions_duplicates:
 
     def __init__(self):
         self._batchlist_duplicates = BatchListFunctions_duplicates_py()
-
+# TODO: string support hinzufügen
     def count_duplicates(self, rustbatchholder: RustBatchholder, tableName: str,
                          get_distibution_by_last_col: bool = False) -> RustBatchListFunctions_duplicates_result:
         bt = rustbatchholder.getRustBatchTable(tableName)
@@ -76,7 +76,11 @@ class RustBatchListFunctions_duplicates:
                                                             result.duplicates_by_last_col)
         elif dtype == dtype.NUMPY_FLOAT32:
             raise Exception('float32 is not sortable at the moment')
+        elif dtype == dtype.NUMPY_STRING:
+            result = self._batchlist_duplicates.count_duplicates_on_sorted_list_string(bt, get_distibution_by_last_col)
+            return result
         elif dtype == dtype.NUMPY_FLOAT64:
-            raise Exception('float64 is not sortable at the moment')
+            result = self._batchlist_duplicates.count_duplicates_on_sorted_list_f64(bt, get_distibution_by_last_col)
+            return result
         else:
             raise Exception('datatype is not sortable at the moment')

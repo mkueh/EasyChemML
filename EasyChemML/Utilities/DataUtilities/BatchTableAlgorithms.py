@@ -3,7 +3,7 @@ from typing import Callable, Any
 
 from EasyChemML.Environment import Environment
 from EasyChemML.Utilities.DataUtilities.BatchTable import BatchTable
-from EasyChemML.Utilities.DataUtilities.TableAlgorithms.Sort.MergeSort import MergeSort
+# from EasyChemML.Utilities.DataUtilities.TableAlgorithms.Sort.MergeSort import MergeSort
 from EasyChemML.Utilities.DataUtilities.TableAlgorithms.ReorderInplace import ReorderInplace
 
 
@@ -15,7 +15,8 @@ class BatchTableAlgorithms:
         self.env = env
 
     def mergeSort(self, batchTable: BatchTable):
-        MergeSort.sort(batchTable, env=self.env)
+        # MergeSort.sort(batchTable, env=self.env)
+        print("no merge sort")
 
     def sort(self, batchTable: BatchTable, key_func: Callable[[Any, Any], int] = None):
         length = len(batchTable)

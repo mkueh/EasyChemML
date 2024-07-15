@@ -126,7 +126,7 @@ class BatchDatatypHolder:
                     return False
             return True
         else:
-            return True
+            return BatchDatatypClass.get_dtype_lvl(self[self.getColumns()[0]]) > 0
 
     def check_containsObjects(self) -> bool:
         if len(self) > 1:
@@ -134,7 +134,7 @@ class BatchDatatypHolder:
 
             for item in self:
                 item: BatchDatatyp = self[item]
-                if BatchDatatypClass.get_dtype_lvl(item) < 0:
+                if BatchDatatypClass.get_dtype_lvl(item) < -1:
                     return True
             return False
         else:

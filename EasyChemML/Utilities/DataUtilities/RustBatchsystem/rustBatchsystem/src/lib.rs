@@ -1,8 +1,8 @@
 extern crate core;
 
-mod BatchSystem;
-mod Utilities;
-mod BatchFunctions;
+pub mod BatchFunctions;
+pub mod BatchSystem;
+pub mod Utilities;
 
 #[path = "../test/test_merge_sort.rs"]
 mod test_merge_sort;
@@ -12,4 +12,3 @@ mod test_batchsystem;
 
 #[path = "../test/test_batchlistfunctions.rs"]
 mod test_batchlistfunctions;
-
